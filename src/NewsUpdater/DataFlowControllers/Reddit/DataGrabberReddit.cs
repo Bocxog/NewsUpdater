@@ -13,8 +13,10 @@ namespace NewsUpdater.DataFlowControllers
     public class DataGrabberReddit
     {
         private readonly RedditSharp.Reddit reddit;
+        private readonly string redditHostUrl;
         public DataGrabberReddit(IConfiguration configuration)
         {
+            redditHostUrl = configuration.GetValue<string>("reddit:url");
             var username = configuration.GetValue<string>("reddit:username");
             var password = configuration.GetValue<string>("reddit:password");
             var appid = configuration.GetValue<string>("reddit:appid");
@@ -32,11 +34,28 @@ namespace NewsUpdater.DataFlowControllers
             foreach (var post in posts)
             {
                 Console.WriteLine($"{post.CreatedUTC.Subtract(now).TotalMinutes}. Rating: {post.Score}. {post.Created}. {post.CommentCount}. {post.Title}");
-                foreach( var comment in post.Comments.OrderByDescending(x => x.Upvotes).Take(5)){
+                UpdatePostInfo(post.Permalink.ToString());
+                foreach ( var comment in post.Comments.OrderByDescending(x => x.Upvotes).Take(5)){
                     Console.WriteLine($"\tRating: {comment.Score}. {comment.Created}. {comment.Body}");
                 }
             }
         }
+
+        public Listing<Post> ReadPosts(string subreddit, Sorting sorting, TimeSorting timeSorting)
+        {
+            var posts = reddit.Search<Post>($"subreddit:{subreddit}", sorting, timeSorting);
+            return posts;
+        }
+
+
+        public Post UpdatePostInfo(string postPermalink)
+        {
+            var uri = new Uri(redditHostUrl + postPermalink);
+            
+            var _post = reddit.GetPost(uri);
+            return _post;
+        }
+
 
     }
 }
