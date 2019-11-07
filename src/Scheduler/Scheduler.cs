@@ -2,9 +2,10 @@
 using Quartz.Impl;
 using System;
 using System.Collections.Specialized;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Scheduler
+namespace ScheduleLib
 {
     public class Scheduler : IDisposable
     {
@@ -35,23 +36,28 @@ namespace Scheduler
 
         public async Task<bool> CheckExist(TriggerKey triggerKey) => await scheduler.CheckExists(triggerKey);
         public async Task<bool> CheckExist(JobKey jobKey) => await scheduler.CheckExists(jobKey);
-        
-        
-        public async Task SetupTask(Type jobType, Action<SimpleScheduleBuilder> scheduleBuilder)
+
+        private static int index = 0;
+        private int GetNextNumber() => Interlocked.Increment(ref index);
+        public async Task SetupTask(Type jobType, Action<SimpleScheduleBuilder> scheduleBuilder, Action<JobBuilder> advancedSetting = null)
         {
+            var nextTaskNumber = GetNextNumber();
             // define the job and tie it to our HelloJob class
-            IJobDetail jobDetail = JobBuilder
-                .Create(jobType)                
+            JobBuilder jobDetailBuilder = JobBuilder
+                .Create(jobType)
                 //Create<HelloJob>()
-                .WithIdentity("job1", "group1")
-                .Build();
+                .WithIdentity("job" + nextTaskNumber);
+
+            advancedSetting?.Invoke(jobDetailBuilder);
+            IJobDetail jobDetail = jobDetailBuilder.Build();
 
             // Trigger the job to run now, and then repeat every 10 seconds
             //ICronTrigger
             ITrigger trigger = TriggerBuilder.Create()
-                .WithIdentity("trigger1", "group1")
+                .WithIdentity("trigger" + nextTaskNumber)
                 .StartNow()
                 .WithSimpleSchedule(scheduleBuilder)
+                //.WithSimpleSchedule(x=> x.WithIntervalInHours(1).WithRepeatCount(24*4))
                 //=> x
                 //    .WithIntervalInSeconds(10)
                 //    .RepeatForever())

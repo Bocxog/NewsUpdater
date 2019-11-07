@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Scheduler\Scheduler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="appsettings.private.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
