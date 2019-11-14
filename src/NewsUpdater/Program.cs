@@ -10,40 +10,43 @@ using System.Collections.Generic;
 using ScheduleLib;
 using System.Threading.Tasks;
 using System.Threading;
+using DomainData;
 
 namespace NewsUpdater
 {
     class Program
     {
         public static DataGrabberReddit dataGrabber;
+        public static IConfiguration builder;
         static async System.Threading.Tasks.Task Main(string[] args)
         {
-            IConfiguration builder = new ConfigurationBuilder()
+            builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appsettings.private.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            var log = new StringWriter();
-            using (var scheduler = new Scheduler())
+            using (var db = new DesignTimeDbContextFactory().CreateDbContext(builder))
             {
-                dataGrabber = new DataGrabberReddit(builder);
+                using (var scheduler = new Scheduler())
+                {
+                    dataGrabber = new DataGrabberReddit(builder);
 
-                //75% done: queued refresh data
-                //60% done: store to db values (docker)
-                //TODO: take grafana online (docker)
+                    //75% done: queued refresh data
+                    //60% done: store to db values (docker)
+                    //TODO: take grafana online (docker)
 
-                var listToUpdate = new List<string>();
-                listToUpdate.Add("/r/Pikabu/comments/dl6ngi/книги/");
-                listToUpdate.Add("/r/science/comments/dj4z87/from_2007_to_2017_the_number_of_suicides_among/");
+                    var listToUpdate = new List<string>();
+                    listToUpdate.Add("/r/Pikabu/comments/dl6ngi/книги/");
+                    listToUpdate.Add("/r/science/comments/dj4z87/from_2007_to_2017_the_number_of_suicides_among/");
 
-                //dataGrabber.ReadPosts("pikabu");
-                //a.ReadPosts("WTF");
-                await SetQueueToUpdateSubredditInfo(scheduler);
-
-                Console.WriteLine("");
-                Console.WriteLine("FINISH");
-                Console.ReadKey();
+                    //dataGrabber.ReadPosts("pikabu");
+                    //a.ReadPosts("WTF");
+                    await SetQueueToUpdateSubredditInfo(scheduler);
+                    Console.WriteLine("");
+                    Console.WriteLine("FINISH");
+                    Console.ReadKey();
+                }
             }
         }
 
