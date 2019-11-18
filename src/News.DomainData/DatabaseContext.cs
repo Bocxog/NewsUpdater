@@ -14,6 +14,7 @@ namespace DomainData
         public DbSet<Setting> Settings { get; set; }
 
         public DbSet<Post> Posts { get; set; }
+        public DbSet<SubReddit> SubReddits { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserComment> Comments { get; set; }
 
@@ -33,7 +34,7 @@ namespace DomainData
             //Write Fluent API configurations here
 
             //Property Configurations
-            modelBuilder.Entity<Community>()
+            modelBuilder.Entity<SubReddit>()
                 .HasIndex(x=> x.Name);
 
             modelBuilder.Entity<PostTag>(u => u.HasIndex(x => x.Name));

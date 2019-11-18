@@ -18,6 +18,7 @@ namespace NewsUpdater
     {
         public static DataGrabberReddit dataGrabber;
         public static IConfiguration builder;
+        public static Scheduler scheduler;
         static async System.Threading.Tasks.Task Main(string[] args)
         {
             builder = new ConfigurationBuilder()
@@ -28,7 +29,7 @@ namespace NewsUpdater
 
             using (var db = new DesignTimeDbContextFactory().CreateDbContext(builder))
             {
-                using (var scheduler = new Scheduler())
+                using (scheduler = new Scheduler())
                 {
                     dataGrabber = new DataGrabberReddit(builder);
 
